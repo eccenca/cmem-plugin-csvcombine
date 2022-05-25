@@ -79,7 +79,7 @@ class CsvCombine(WorkflowPlugin):
         for i, row in enumerate(value_list):
             entities.append(
                     Entity(
-                        uri=str(i+1),
+                        uri=f"urn:{i+1}",
                         values=[[v] for v in row]
                     )
                 )
