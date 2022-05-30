@@ -17,9 +17,9 @@ from cmem_plugin_base.dataintegration.entity import (
     parameters=[
         PluginParameter(
             param_type = StringParameterType(),
-            name="separator",
-            label="Separator",
-            description="Separator",
+            name="delimiter",
+            label="Delimiter",
+            description="Delimiter",
             default_value=","
         ),
         PluginParameter(
@@ -31,9 +31,9 @@ from cmem_plugin_base.dataintegration.entity import (
         ),
         PluginParameter(
             param_type = StringParameterType(),
-            name="regex_pattern",
-            label="Regex pattern",
-            description="Regex pattern for file names"
+            name="regex",
+            label="Regex",
+            description="Regex"
         )
     ]
 )
@@ -43,16 +43,16 @@ class CsvCombine(WorkflowPlugin):
 
     def __init__(
         self,
-        separator,
+        delimiter,
         quotechar,
-        regex_pattern
+        regex
     ) -> None:
-        self.separator = separator
+        self.delimiter = delimiter
         self.quotechar = quotechar
-        self.regex_pattern = regex_pattern
+        self.regex = regex
 
     def get_resources_list(self):
-        return [r for r in get_all_resources() if re.match(r"{}".format(self.regex_pattern), r["name"])]
+        return [r for r in get_all_resources() if re.match(r"{}".format(self.regex), r["name"])]
 
     def get_entities(self, d):
         value_list = []
@@ -60,7 +60,7 @@ class CsvCombine(WorkflowPlugin):
         for i, r in enumerate(d):
             self.log.info(f"adding file {r['name']}")
             b = get_resource(r["project"], r["name"]).decode("utf-8")
-            h = [c.strip() for c in b.split("\n")[0].split(self.separator)]
+            h = [c.strip() for c in b.split("\n")[0].split(self.delimiter)]
             if i == 0:
                 hh = h
             else:
@@ -68,7 +68,7 @@ class CsvCombine(WorkflowPlugin):
                     self.log.info(f"inconsistent headers (file {r['name']})")
                     raise ValueError(f"inconsistent headers (file {r['name']})")
             for row in b.split("\n")[1:-1]:
-                s = [c.strip(self.quotechar) for c in row.split(self.separator)]
+                s = [c.strip(self.quotechar) for c in row.split(self.delimiter)]
                 #if s not in value_list: value_list.append(s)
                 value_list.append(s)
         value_list = [list(item) for item in set(tuple(row) for row in value_list)]
