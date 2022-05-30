@@ -73,7 +73,7 @@ class CsvCombine(WorkflowPlugin):
                 value_list.append(s)
         value_list = [list(item) for item in set(tuple(row) for row in value_list)]
         schema = EntitySchema(
-                type_uri="row",
+                type_uri="urn:row",
                 paths=[EntityPath(path=n) for n in h]
             )
         for i, row in enumerate(value_list):
