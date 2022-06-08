@@ -1,6 +1,7 @@
 import re
 from cmem.cmempy.workspace.projects.resources import get_all_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
+from cmem_plugin_base.dataintegration.utils import setup_cmempy_super_user_access
 from cmem_plugin_base.dataintegration.description import Plugin, PluginParameter
 from cmem_plugin_base.dataintegration.types import StringParameterType
 from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
@@ -50,6 +51,7 @@ class CsvCombine(WorkflowPlugin):
         self.delimiter = delimiter
         self.quotechar = quotechar
         self.regex = regex
+        setup_cmempy_super_user_access()
 
     def get_resources_list(self):
         return [r for r in get_all_resources() if re.match(r"{}".format(self.regex), r["name"])]
