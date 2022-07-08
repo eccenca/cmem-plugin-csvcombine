@@ -3,11 +3,9 @@ from cmem.cmempy.workspace.projects.resources import get_all_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
 from cmem_plugin_base.dataintegration.utils import setup_cmempy_super_user_access
 from cmem_plugin_base.dataintegration.description import Plugin, PluginParameter
-from cmem_plugin_base.dataintegration.types import StringParameterType
+from cmem_plugin_base.dataintegration.types import StringParameterType, IntParameterType
 from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
-from cmem_plugin_base.dataintegration.entity import (
-    Entities, Entity, EntitySchema, EntityPath,
-)
+from cmem_plugin_base.dataintegration.entity import Entities, Entity, EntitySchema, EntityPath
 
 
 @Plugin(
@@ -20,21 +18,29 @@ from cmem_plugin_base.dataintegration.entity import (
             param_type = StringParameterType(),
             name="delimiter",
             label="Delimiter",
-            description="Delimiter",
+            description="Delimiter.",
             default_value=","
         ),
         PluginParameter(
             param_type = StringParameterType(),
             name="quotechar",
             label="Quotechar",
-            description="Quotechar",
+            description="Quotechar.",
             default_value='"'
         ),
         PluginParameter(
             param_type = StringParameterType(),
             name="regex",
-            label="Regex",
-            description="Regex"
+            label="File name regex filter",
+            description="File name regex filter."
+        ),
+        PluginParameter(
+            param_type = IntParameterType(),
+            name="skip_lines",
+            label="Skip lines",
+            description="The number of lines to skip in the beginning.",
+            default_value=0,
+            advanced=True
         )
     ]
 )
@@ -46,11 +52,13 @@ class CsvCombine(WorkflowPlugin):
         self,
         delimiter,
         quotechar,
-        regex
+        regex,
+        skip_lines
     ) -> None:
         self.delimiter = delimiter
         self.quotechar = quotechar
         self.regex = regex
+        self.skip_lines = skip_lines
         setup_cmempy_super_user_access()
 
     def get_resources_list(self):
@@ -62,14 +70,13 @@ class CsvCombine(WorkflowPlugin):
         for i, r in enumerate(d):
             self.log.info(f"adding file {r['name']}")
             b = get_resource(r["project"], r["name"]).decode("utf-8")
-            h = [c.strip() for c in b.split("\n")[0].split(self.delimiter)]
+            h = [c.strip() for c in b.split("\n")[self.skip_lines].split(self.delimiter)]
             if i == 0:
                 hh = h
             else:
                 if h != hh:
-                    self.log.info(f"inconsistent headers (file {r['name']})")
                     raise ValueError(f"inconsistent headers (file {r['name']})")
-            for row in b.split("\n")[1:-1]:
+            for row in b.split("\n")[self.skip_lines+1:-1]:
                 s = [c.strip(self.quotechar) for c in row.split(self.delimiter)]
                 #if s not in value_list: value_list.append(s)
                 value_list.append(s)

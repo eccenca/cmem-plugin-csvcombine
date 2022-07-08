@@ -7,7 +7,7 @@ def test_execution():
     #entities = 100
     #values = 10
 
-    plugin = CsvCombine(delimiter="'", quotechar='"', regex="")
+    plugin = CsvCombine(delimiter="'", quotechar='"', regex="", skip_lines=0)
     #result = plugin.execute()
     #for item in result.entities:
     #    assert len(item.values) == len(result.schema.paths)
