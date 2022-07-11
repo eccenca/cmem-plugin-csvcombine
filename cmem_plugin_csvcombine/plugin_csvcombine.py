@@ -1,4 +1,6 @@
 import re
+from io import StringIO
+from csv import reader
 from cmem.cmempy.workspace.projects.resources import get_all_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
 from cmem_plugin_base.dataintegration.utils import setup_cmempy_super_user_access
@@ -69,15 +71,16 @@ class CsvCombine(WorkflowPlugin):
         entities = []
         for i, r in enumerate(d):
             self.log.info(f"adding file {r['name']}")
-            b = get_resource(r["project"], r["name"]).decode("utf-8")
-            h = [c.strip() for c in b.split("\n")[self.skip_lines].split(self.delimiter)]
+            csv_string = get_resource(r["project"], r["name"]).decode("utf-8")
+            csv_list = list(reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar))
+            h = [c.strip() for c in csv_list[self.skip_lines]]
             if i == 0:
                 hh = h
             else:
                 if h != hh:
                     raise ValueError(f"inconsistent headers (file {r['name']})")
-            for row in b.split("\n")[self.skip_lines+1:-1]:
-                s = [c.strip(self.quotechar) for c in row.split(self.delimiter)]
+            for row in list(csv_list)[self.skip_lines+1:]:
+                s = [c.strip() for c in row]
                 #if s not in value_list: value_list.append(s)
                 value_list.append(s)
         value_list = [list(item) for item in set(tuple(row) for row in value_list)]
