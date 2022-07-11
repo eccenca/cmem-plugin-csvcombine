@@ -11,8 +11,8 @@ from cmem_plugin_base.dataintegration.entity import Entities, Entity, EntitySche
 @Plugin(
     label="Combine CSV files",
     plugin_id="combine-csv",
-    description="Combines CSV files of the same type",
-    documentation="""TBD""",
+    description="Combines CSV files with the same structure to one dataset..",
+    documentation="""Combines CSV files with the same structure to one dataset. Files are identified by specifying a regex filter.""",
     parameters=[
         PluginParameter(
             param_type = StringParameterType(),
