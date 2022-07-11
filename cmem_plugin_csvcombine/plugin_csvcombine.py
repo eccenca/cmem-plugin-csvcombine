@@ -79,7 +79,7 @@ class CsvCombine(WorkflowPlugin):
             else:
                 if h != hh:
                     raise ValueError(f"inconsistent headers (file {r['name']})")
-            for row in list(csv_list)[self.skip_lines+1:]:
+            for row in csv_list[1+self.skip_lines:]:
                 s = [c.strip() for c in row]
                 #if s not in value_list: value_list.append(s)
                 value_list.append(s)
