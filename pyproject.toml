@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmem-plugin-csvcombine"
-version = "0.0.1"
+version = "0.0.2"
 license = "Apache-2.0"
 description = "This eccenca Corporate Memory plugin totally rocks :-)"
 authors = ["Thomas Wilmering <thomas.wilmering@eccenca.com>"]
