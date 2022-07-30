@@ -61,10 +61,13 @@ class CsvCombine(WorkflowPlugin):
         self.quotechar = quotechar
         self.regex = regex
         self.skip_lines = skip_lines
+        self.string_parameters = ["delimiter", "quotechar", "regex"]
+        self.int_parameters = ["skip_lines"]
         setup_cmempy_super_user_access()
 
     def get_resources_list(self):
-        return [r for r in get_all_resources() if re.match(r"{}".format(self.regex), r["name"])]
+        #return [r for r in get_all_resources() if re.match(r"{}".format(self.regex), r["name"])]
+        return [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
 
     def get_entities(self, d):
         value_list = []
@@ -97,8 +100,27 @@ class CsvCombine(WorkflowPlugin):
                 )
         return Entities(entities=entities, schema=schema)
 
+    def process_inputs(self, inputs):
+        # accepts only one set of parametes
+        paths = [e.path for e in inputs[0].schema.paths]
+        values = [e[0] for e in list(inputs[0].entities)[0].values]
+        self.log.info("Processing input parameters...")
+        for p, v in zip(paths, values):
+            self.log.info(f"Input parameter {p}: {v}")
+            if p not in self.string_parameters + self.int_parameters:
+                raise ValueError(f"Invalid parameter: {p}")
+            if p in self.int_parameters:
+                try:
+                    self.__dict__[p] = int(v)
+                except:
+                    raise ValueError(f"Invalid integer value for parameter {p}")
+        self.log.info("Parameters OK:")
+        for p in self.string_parameters + self.int_parameters:
+            self.log.info(f"{p}: {self.__dict__[p]}")
 
     def execute(self, inputs=()):
+        if inputs:
+            self.process_inputs(inputs)
         r = self.get_resources_list()
         entities = self.get_entities(r)
         return entities
