@@ -78,7 +78,7 @@ class CsvCombine(WorkflowPlugin):
             csv_string = get_resource(r["project"], r["name"]).decode("utf-8")
             csv_list = list(reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar))
             h = [c.strip() for c in csv_list[self.skip_lines]]
-            if i == self.skip_lines:
+            if i == 0:
                 hh = h
             else:
                 if h != hh:

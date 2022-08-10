@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmem-plugin-csvcombine"
-version = "1.0.1"
+version = "1.0.3"
 license = "Apache-2.0"
 description = "This eccenca Corporate Memory workflow plugin combines csv files based on a regex filter for file names."
 authors = ["Thomas Wilmering <thomas.wilmering@eccenca.com>"]
