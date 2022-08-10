@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+### Fixed
+
+- revert faulty/unnecessary fix of v1.0.2
+
+### Changed
+
+- version number in pyproject.toml
+
 TODO: add at least one Added, Changed, Deprecated, Removed, Fixed or Security section
 
 ## [1.0.2] 2022-08-10
