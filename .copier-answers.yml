@@ -1,7 +1,9 @@
 # Changes here will be overwritten by Copier
-_commit: v1.0.2
-_src_path: gh:eccenca/cmem-plugin-template
+_commit: v4.1.0
+_src_path: https://github.com/eccenca/cmem-plugin-template.git
 author_mail: thomas.wilmering@eccenca.com
 author_name: Thomas Wilmering
+github_page: ''
 project_description: This eccenca Corporate Memory plugin totally rocks :-)
 project_slug: csvcombine
+pypi: false
