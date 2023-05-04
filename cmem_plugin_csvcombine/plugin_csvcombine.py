@@ -3,7 +3,7 @@ from io import StringIO
 from csv import reader
 from cmem.cmempy.workspace.projects.resources import get_all_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
-from cmem_plugin_base.dataintegration.utils import setup_cmempy_super_user_access
+from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 from cmem_plugin_base.dataintegration.context import ExecutionContext
 from cmem_plugin_base.dataintegration.description import Plugin, PluginParameter
 from cmem_plugin_base.dataintegration.types import StringParameterType, IntParameterType
@@ -113,7 +113,7 @@ class CsvCombine(WorkflowPlugin):
             self.log.info(f"{p}: {self.__dict__[p]}")
 
     def execute(self, inputs=(), context: ExecutionContext = ExecutionContext()):
-        setup_cmempy_super_user_access()
+        setup_cmempy_user_access(context.user)
         if inputs:
             self.process_inputs(inputs)
         r = self.get_resources_list()
