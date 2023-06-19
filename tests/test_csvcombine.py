@@ -12,6 +12,7 @@ import pytest
 @pytest.fixture(name="project")
 def _project():
     """fixture for project setup."""
+
     @dataclass
     class FixtureData:
         """Fixture Data for Tests"""
@@ -25,7 +26,7 @@ def _project():
     make_new_project(fixture.project_name)
 
     # Create the first dataset and upload the file as a resource
-    with open(f'tests/fixture_dir/{fixture.resource_one}', "rb") as response_file:
+    with open(f"tests/fixture_dir/{fixture.resource_one}", "rb") as response_file:
         create_resource(
             project_name=fixture.project_name,
             resource_name=fixture.resource_one,
@@ -33,7 +34,7 @@ def _project():
             replace=True,
         )
 
-    with open(f'tests/fixture_dir/{fixture.resource_two}', "rb") as response_file:
+    with open(f"tests/fixture_dir/{fixture.resource_two}", "rb") as response_file:
         create_resource(
             project_name=fixture.project_name,
             resource_name=fixture.resource_two,
@@ -51,7 +52,7 @@ def test_execution(project):
 
     plugin = CsvCombine(
         delimiter=",",
-        quotechar="\"",
+        quotechar='"',
         regex="test*.csv",
         skip_lines="0",
     )

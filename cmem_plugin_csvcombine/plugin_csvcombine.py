@@ -20,7 +20,7 @@ from cmem_plugin_base.dataintegration.entity import (
 @Plugin(
     label="Combine CSV files",
     plugin_id="combine-csv",
-    description="Combines CSV files with the same structure to one dataset..",
+    description="Combine CSV files with the same structure to one dataset.",
     documentation="""Combines CSV files with the same structure to one dataset.
                      Files are identified by specifying a regex filter.""",
     parameters=[
@@ -90,7 +90,7 @@ class CsvCombine(WorkflowPlugin):
             else:
                 if header != hheader:
                     raise ValueError(f"inconsistent headers (file {row['name']})")
-            for rows in csv_list[1 + int(self.skip_lines):]:
+            for rows in csv_list[1 + int(self.skip_lines) :]:
                 strip = [c.strip() for c in rows]
                 value_list.append(strip)
         value_list = [list(item) for item in set(tuple(rows) for rows in value_list)]
