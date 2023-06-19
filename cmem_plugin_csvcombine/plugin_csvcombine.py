@@ -67,14 +67,13 @@ class CsvCombine(WorkflowPlugin):
 
     def get_resources_list(self):
         """Returns a list with the resources"""
-        # return [r for r in get_all_resources()
-        # if re.match(r"{}".format(self.regex), r["name"])]
         return [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
 
     def get_entities(self, data):
         """Creating and returns Entities."""
         value_list = []
         entities = []
+        header = []
         for i, row in enumerate(data):
             self.log.info(f"adding file {row['name']}")
             csv_string = get_resource(row["project"], row["name"]).decode("utf-8")
@@ -85,21 +84,21 @@ class CsvCombine(WorkflowPlugin):
                     quotechar=self.quotechar,
                 )
             )
-            header = [c.strip() for c in csv_list[self.skip_lines]]
             if i == 0:
+                header = [c.strip() for c in csv_list[int(self.skip_lines)]]
                 hheader = header
             else:
                 if header != hheader:
                     raise ValueError(f"inconsistent headers (file {row['name']})")
-            for rows in csv_list[1 + self.skip_lines :]:
+            for rows in csv_list[1 + int(self.skip_lines):]:
                 strip = [c.strip() for c in rows]
-                # if s not in value_list: value_list.append(s)
                 value_list.append(strip)
         value_list = [list(item) for item in set(tuple(rows) for rows in value_list)]
-        schema = EntitySchema(type_uri="urn:row",
-                              paths=[EntityPath(path=n) for n in header])
+        schema = EntitySchema(
+            type_uri="urn:row", paths=[EntityPath(path=n) for n in header]
+        )
         for i, rows in enumerate(value_list):
-            entities.append(Entity(uri=f"urn:{i+1}", values=[[v] for v in rows]))
+            entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in rows]))
         return Entities(entities=entities, schema=schema)
 
     def process_inputs(self, inputs):
@@ -116,8 +115,9 @@ class CsvCombine(WorkflowPlugin):
                 try:
                     self.__dict__[path] = int(value)
                 except TypeError as exc:
-                    raise ValueError(f"Invalid integer value for parameter {path}")\
-                        from exc
+                    raise ValueError(
+                        f"Invalid integer value for parameter {path}"
+                    ) from exc
         self.log.info("Parameters OK:")
         for path in self.string_parameters + self.int_parameters:
             self.log.info(f"{path}: {self.__dict__[path]}")
