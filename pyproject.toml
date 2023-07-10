@@ -17,8 +17,9 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-cmem-plugin-base = "^3.1.0"
+cmem-plugin-base = ">=3.1.0, <5.0.0"
 cmem-cmempy = "^23.1"
+pillow = "9.5.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.5"
