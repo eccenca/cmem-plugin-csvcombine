@@ -47,7 +47,7 @@ jobs:
           poetry self add "poetry-dynamic-versioning[plugin]"
 
       - name: poetry
-        rub: |
+        run: |
           task check:poetry
 
       - name: bandit
