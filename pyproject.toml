@@ -2,24 +2,26 @@
 name = "cmem-plugin-csvcombine"
 version = "0.0.0"
 license = "Apache-2.0"
-description = "This eccenca Corporate Memory plugin totally rocks :-)"
-authors = ["Thomas Wilmering <thomas.wilmering@eccenca.com>"]
+description = "Combine CSV files with the same structure to one dataset."
+authors = ["eccenca GmbH <cmempy-developer@eccenca.com>"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Plugins",
-    "Topic :: Software Development :: Libraries :: Python Modules"
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
 ]
 readme = "README-public.md"
 keywords = [
     "eccenca Corporate Memory", "plugin"
 ]
-
+homepage = "https://github.com/eccenca/cmem-plugin-csvcombine"
+include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-cmem-plugin-base = ">=3.1.0, <5.0.0"
+python = "^3.11"
+cmem-plugin-base = "^4.0.0"
 cmem-cmempy = "^23.1"
-pillow = "9.5.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.5"
@@ -29,6 +31,7 @@ defusedxml = "^0.7.1"
 flake8-formatter-junit-xml = "^0.0.6"
 genbadge = "^1.1.0"
 mypy = "^1.2.0"
+pillow = "^9.5.0"
 pylint-junit = "^0.3.2"
 pytest = "^7.3.1"
 pytest-cov = "^4.0.0"

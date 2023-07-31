@@ -1,6 +1,6 @@
 # cmem-plugin-csvcombine
 
-This eccenca Corporate Memory plugin totally rocks :-)
+Combine CSV files with the same structure to one dataset.
 
 This is a plugin for [eccenca](https://eccenca.com) [Corporate Memory](https://documentation.eccenca.com).
 
