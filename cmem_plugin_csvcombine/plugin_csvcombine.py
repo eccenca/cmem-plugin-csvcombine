@@ -1,20 +1,23 @@
 """csv combing plugin"""
+
 import re
-from io import StringIO
+from collections.abc import Sequence
 from csv import reader
+from io import StringIO
+
 from cmem.cmempy.workspace.projects.resources import get_all_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
-from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 from cmem_plugin_base.dataintegration.context import ExecutionContext
 from cmem_plugin_base.dataintegration.description import Plugin, PluginParameter
-from cmem_plugin_base.dataintegration.types import StringParameterType, IntParameterType
-from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
 from cmem_plugin_base.dataintegration.entity import (
     Entities,
     Entity,
-    EntitySchema,
     EntityPath,
+    EntitySchema,
 )
+from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
+from cmem_plugin_base.dataintegration.types import IntParameterType, StringParameterType
+from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 
 
 @Plugin(
@@ -57,7 +60,7 @@ from cmem_plugin_base.dataintegration.entity import (
 class CsvCombine(WorkflowPlugin):
     """Plugin to combine multiple csv files with same header."""
 
-    def __init__(self, delimiter, quotechar, regex, skip_lines) -> None:
+    def __init__(self, delimiter: str, quotechar: str, regex: str, skip_lines: int) -> None:
         self.delimiter = delimiter
         self.quotechar = quotechar
         self.regex = regex
@@ -65,12 +68,12 @@ class CsvCombine(WorkflowPlugin):
         self.string_parameters = ["delimiter", "quotechar", "regex"]
         self.int_parameters = ["skip_lines"]
 
-    def get_resources_list(self):
-        """Returns a list with the resources"""
+    def get_resources_list(self) -> list:
+        """Return a list with the resources"""
         return [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
 
-    def get_entities(self, data):
-        """Creating and returns Entities."""
+    def get_entities(self, data: list) -> Entities:
+        """Create and return Entities."""
         value_list = []
         entities = []
         header = []
@@ -87,27 +90,24 @@ class CsvCombine(WorkflowPlugin):
             if i == 0:
                 header = [c.strip() for c in csv_list[int(self.skip_lines)]]
                 hheader = header
-            else:
-                if header != hheader:
-                    raise ValueError(f"inconsistent headers (file {row['name']})")
+            elif header != hheader:
+                raise ValueError(f"inconsistent headers (file {row['name']})")
             for rows in csv_list[1 + int(self.skip_lines) :]:
                 strip = [c.strip() for c in rows]
                 value_list.append(strip)
-        value_list = [list(item) for item in set(tuple(rows) for rows in value_list)]
-        schema = EntitySchema(
-            type_uri="urn:row", paths=[EntityPath(path=n) for n in header]
-        )
+        value_list = [list(item) for item in set(tuple(rows) for rows in value_list)]  # noqa: C401
+        schema = EntitySchema(type_uri="urn:row", paths=[EntityPath(path=n) for n in header])
         for i, rows in enumerate(value_list):
             entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in rows]))
         return Entities(entities=entities, schema=schema)
 
-    def process_inputs(self, inputs):
-        """processes the inputs"""
+    def process_inputs(self, inputs: Sequence[Entities]) -> None:
+        """Process the inputs"""
         # accepts only one set of parametes
         paths = [e.path for e in inputs[0].schema.paths]
-        values = [e[0] for e in list(inputs[0].entities)[0].values]
+        values = [e[0] for e in list(inputs[0].entities)[0].values]  # noqa: RUF015
         self.log.info("Processing input parameters...")
-        for path, value in zip(paths, values):
+        for path, value in zip(paths, values, strict=False):
             self.log.info(f"Input parameter {path}: {value}")
             if path not in self.string_parameters + self.int_parameters:
                 raise ValueError(f"Invalid parameter: {path}")
@@ -115,17 +115,15 @@ class CsvCombine(WorkflowPlugin):
                 try:
                     self.__dict__[path] = int(value)
                 except TypeError as exc:
-                    raise ValueError(
-                        f"Invalid integer value for parameter {path}"
-                    ) from exc
+                    raise ValueError(f"Invalid integer value for parameter {path}") from exc
         self.log.info("Parameters OK:")
         for path in self.string_parameters + self.int_parameters:
             self.log.info(f"{path}: {self.__dict__[path]}")
 
-    def execute(self, inputs=(), context: ExecutionContext = ExecutionContext()):
+    def execute(self, inputs: Sequence[Entities], context: ExecutionContext) -> Entities:
+        """Execute plugin"""
         setup_cmempy_user_access(context.user)
         if inputs:
             self.process_inputs(inputs)
         list_resources = self.get_resources_list()
-        entities = self.get_entities(list_resources)
-        return entities
+        return self.get_entities(list_resources)
