@@ -7,8 +7,8 @@ from io import StringIO
 
 from cmem.cmempy.workspace.projects.resources import get_all_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
-from cmem_plugin_base.dataintegration.context import ExecutionContext
-from cmem_plugin_base.dataintegration.description import Plugin, PluginParameter
+from cmem_plugin_base.dataintegration.context import ExecutionContext, ExecutionReport
+from cmem_plugin_base.dataintegration.description import Icon, Plugin, PluginParameter
 from cmem_plugin_base.dataintegration.entity import (
     Entities,
     Entity,
@@ -16,12 +16,14 @@ from cmem_plugin_base.dataintegration.entity import (
     EntitySchema,
 )
 from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
+from cmem_plugin_base.dataintegration.ports import FixedNumberOfInputs, UnknownSchemaPort
 from cmem_plugin_base.dataintegration.types import IntParameterType, StringParameterType
 from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 
 
 @Plugin(
     label="Combine CSV files",
+    icon=Icon(file_name="lsicon--file-csv-outline.svg", package=__package__),
     plugin_id="combine-csv",
     description="Combine CSV files with the same structure to one dataset.",
     documentation="""Combines CSV files with the same structure to one dataset.
@@ -65,8 +67,9 @@ class CsvCombine(WorkflowPlugin):
         self.quotechar = quotechar
         self.regex = regex
         self.skip_lines = skip_lines
-        self.string_parameters = ["delimiter", "quotechar", "regex"]
-        self.int_parameters = ["skip_lines"]
+
+        self.input_ports = FixedNumberOfInputs([])
+        self.output_port = UnknownSchemaPort()
 
     def get_resources_list(self) -> list:
         """Return a list with the resources"""
@@ -81,49 +84,32 @@ class CsvCombine(WorkflowPlugin):
             self.log.info(f"adding file {row['name']}")
             csv_string = get_resource(row["project"], row["name"]).decode("utf-8")
             csv_list = list(
-                reader(
-                    StringIO(csv_string),
-                    delimiter=self.delimiter,
-                    quotechar=self.quotechar,
-                )
+                reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
             if i == 0:
                 header = [c.strip() for c in csv_list[int(self.skip_lines)]]
                 hheader = header
+                operation_desc = "file processed"
             elif header != hheader:
                 raise ValueError(f"inconsistent headers (file {row['name']})")
+            else:
+                operation_desc = "files processed"
             for rows in csv_list[1 + int(self.skip_lines) :]:
                 strip = [c.strip() for c in rows]
                 value_list.append(strip)
+            self.context.report.update(
+                ExecutionReport(entity_count=i + 1, operation_desc=operation_desc)
+            )
         value_list = [list(item) for item in set(tuple(rows) for rows in value_list)]  # noqa: C401
         schema = EntitySchema(type_uri="urn:row", paths=[EntityPath(path=n) for n in header])
         for i, rows in enumerate(value_list):
             entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in rows]))
         return Entities(entities=entities, schema=schema)
 
-    def process_inputs(self, inputs: Sequence[Entities]) -> None:
-        """Process the inputs"""
-        # accepts only one set of parametes
-        paths = [e.path for e in inputs[0].schema.paths]
-        values = [e[0] for e in list(inputs[0].entities)[0].values]  # noqa: RUF015
-        self.log.info("Processing input parameters...")
-        for path, value in zip(paths, values, strict=False):
-            self.log.info(f"Input parameter {path}: {value}")
-            if path not in self.string_parameters + self.int_parameters:
-                raise ValueError(f"Invalid parameter: {path}")
-            if path in self.int_parameters:
-                try:
-                    self.__dict__[path] = int(value)
-                except TypeError as exc:
-                    raise ValueError(f"Invalid integer value for parameter {path}") from exc
-        self.log.info("Parameters OK:")
-        for path in self.string_parameters + self.int_parameters:
-            self.log.info(f"{path}: {self.__dict__[path]}")
-
-    def execute(self, inputs: Sequence[Entities], context: ExecutionContext) -> Entities:
+    def execute(self, inputs: Sequence[Entities], context: ExecutionContext) -> Entities:  # noqa: ARG002
         """Execute plugin"""
+        context.report.update(ExecutionReport(entity_count=0, operation_desc="files processed"))
+        self.context = context
         setup_cmempy_user_access(context.user)
-        if inputs:
-            self.process_inputs(inputs)
         list_resources = self.get_resources_list()
         return self.get_entities(list_resources)
