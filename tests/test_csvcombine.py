@@ -60,7 +60,7 @@ def test_execution(project: pytest.FixtureRequest) -> None:
         delimiter=",",
         quotechar='"',
         regex="test*.csv",
-        skip_lines=0,
+        skip_rows=0,
     )
     result = plugin.execute(inputs=(), context=TestExecutionContext())
     count = 0

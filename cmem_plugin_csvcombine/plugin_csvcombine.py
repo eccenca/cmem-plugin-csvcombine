@@ -33,27 +33,27 @@ from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
             param_type=StringParameterType(),
             name="delimiter",
             label="Delimiter",
-            description="Delimiter.",
+            description="Delimiter in the input CSV files.",
             default_value=",",
         ),
         PluginParameter(
             param_type=StringParameterType(),
             name="quotechar",
             label="Quotechar",
-            description="Quotechar.",
+            description="Quotechar in the input CSV files.",
             default_value='"',
         ),
         PluginParameter(
             param_type=StringParameterType(),
             name="regex",
             label="File name regex filter",
-            description="File name regex filter.",
+            description="Regular expression for filtering resources of the project.",
         ),
         PluginParameter(
             param_type=IntParameterType(),
-            name="skip_lines",
-            label="Skip lines",
-            description="The number of lines to skip in the beginning.",
+            name="skip_rows",
+            label="Skip rows",
+            description="The number of rows to skip before the header row.",
             default_value=0,
             advanced=True,
         ),
@@ -62,11 +62,11 @@ from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 class CsvCombine(WorkflowPlugin):
     """Plugin to combine multiple csv files with same header."""
 
-    def __init__(self, delimiter: str, quotechar: str, regex: str, skip_lines: int) -> None:
+    def __init__(self, delimiter: str, quotechar: str, regex: str, skip_rows: int) -> None:
         self.delimiter = delimiter
         self.quotechar = quotechar
         self.regex = regex
-        self.skip_lines = skip_lines
+        self.skip_rows = skip_rows
 
         self.input_ports = FixedNumberOfInputs([])
         self.output_port = UnknownSchemaPort()
@@ -86,7 +86,7 @@ class CsvCombine(WorkflowPlugin):
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
-            header = [c.strip() for c in csv_list[int(self.skip_lines)]]
+            header = [c.strip() for c in csv_list[int(self.skip_rows)]]
             if i == 0:
                 header_ = header
                 operation_desc = "file processed"
@@ -94,7 +94,7 @@ class CsvCombine(WorkflowPlugin):
                 raise ValueError(f"inconsistent headers (file {resource['name']})")
             else:
                 operation_desc = "files processed"
-            for rows in csv_list[1 + int(self.skip_lines) :]:
+            for rows in csv_list[1 + int(self.skip_rows) :]:
                 strip = [c.strip() for c in rows]
                 value_list.append(strip)
             self.context.report.update(
