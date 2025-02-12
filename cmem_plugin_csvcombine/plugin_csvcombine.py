@@ -75,23 +75,23 @@ class CsvCombine(WorkflowPlugin):
         """Return a list with the resources"""
         return [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
 
-    def get_entities(self, data: list) -> Entities:
+    def get_entities(self, resources: list) -> Entities:
         """Create and return Entities."""
         value_list = []
         entities = []
         header = []
-        for i, row in enumerate(data):
-            self.log.info(f"adding file {row['name']}")
-            csv_string = get_resource(row["project"], row["name"]).decode("utf-8")
+        for i, resource in enumerate(resources):
+            self.log.info(f"adding file {resource['name']}")
+            csv_string = get_resource(resource["project"], resource["name"]).decode("utf-8")
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
+            header = [c.strip() for c in csv_list[int(self.skip_lines)]]
             if i == 0:
-                header = [c.strip() for c in csv_list[int(self.skip_lines)]]
-                hheader = header
+                header_ = header
                 operation_desc = "file processed"
-            elif header != hheader:
-                raise ValueError(f"inconsistent headers (file {row['name']})")
+            elif header != header_:
+                raise ValueError(f"inconsistent headers (file {resource['name']})")
             else:
                 operation_desc = "files processed"
             for rows in csv_list[1 + int(self.skip_lines) :]:

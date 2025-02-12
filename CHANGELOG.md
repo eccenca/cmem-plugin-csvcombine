@@ -6,15 +6,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
-### Changed
+### Fixed
 
-- Forward cmem-plugin-template to v7.1.0
-- Removed accepting parameter settings on input port
+- check consistent headers across files
 
 ### Added
 
 - Define input/output ports
 - Update execution report
+- 
+### Changed
+
+- Forward cmem-plugin-template to v7.1.0
+- Removed accepting parameter settings on input port
+
+
 
 ## [2.0.0]
 
