@@ -100,7 +100,7 @@ class CsvCombine(WorkflowPlugin):
             self.context.report.update(
                 ExecutionReport(entity_count=i + 1, operation_desc=operation_desc)
             )
-        value_list = [list(item) for item in set(tuple(rows) for rows in value_list)]  # noqa: C401
+        value_list = [list(item) for item in {tuple(rows) for rows in value_list}]
         schema = EntitySchema(type_uri="urn:row", paths=[EntityPath(path=n) for n in header])
         for i, rows in enumerate(value_list):
             entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in rows]))
