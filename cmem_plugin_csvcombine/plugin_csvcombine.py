@@ -51,7 +51,7 @@ from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
         ),
         PluginParameter(
             param_type=IntParameterType(),
-            name="skip_rows",
+            name="skip_lines",
             label="Skip rows",
             description="The number of rows to skip before the header row.",
             default_value=0,
@@ -62,11 +62,11 @@ from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 class CsvCombine(WorkflowPlugin):
     """Plugin to combine multiple csv files with same header."""
 
-    def __init__(self, delimiter: str, quotechar: str, regex: str, skip_rows: int) -> None:
+    def __init__(self, delimiter: str, quotechar: str, regex: str, skip_lines: int) -> None:
         self.delimiter = delimiter
         self.quotechar = quotechar
         self.regex = regex
-        self.skip_rows = skip_rows
+        self.skip_lines = skip_lines
 
         self.input_ports = FixedNumberOfInputs([])
         self.output_port = UnknownSchemaPort()
@@ -86,7 +86,7 @@ class CsvCombine(WorkflowPlugin):
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
-            header = [c.strip() for c in csv_list[self.skip_rows]]
+            header = [c.strip() for c in csv_list[self.skip_lines]]
             if i == 0:
                 header_ = header
                 operation_desc = "file processed"
@@ -94,7 +94,7 @@ class CsvCombine(WorkflowPlugin):
                 raise ValueError(f"inconsistent headers (file {resource['name']})")
             else:
                 operation_desc = "files processed"
-            for rows in csv_list[1 + self.skip_rows :]:
+            for rows in csv_list[1 + self.skip_lines :]:
                 strip = [c.strip() for c in rows]
                 value_list.append(strip)
             self.context.report.update(
