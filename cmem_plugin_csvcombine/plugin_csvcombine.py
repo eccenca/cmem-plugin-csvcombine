@@ -71,10 +71,6 @@ class CsvCombine(WorkflowPlugin):
         self.input_ports = FixedNumberOfInputs([])
         self.output_port = UnknownSchemaPort()
 
-    def get_resources_list(self) -> list:
-        """Return a list with the resources"""
-        return [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
-
     def get_entities(self, resources: list) -> Entities:
         """Create and return Entities."""
         value_list = []
@@ -111,5 +107,5 @@ class CsvCombine(WorkflowPlugin):
         context.report.update(ExecutionReport(entity_count=0, operation_desc="files processed"))
         self.context = context
         setup_cmempy_user_access(context.user)
-        list_resources = self.get_resources_list()
-        return self.get_entities(list_resources)
+        resources = [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
+        return self.get_entities(resources)
