@@ -86,7 +86,7 @@ class CsvCombine(WorkflowPlugin):
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
-            header = [c.strip() for c in csv_list[int(self.skip_rows)]]
+            header = [c.strip() for c in csv_list[self.skip_rows]]
             if i == 0:
                 header_ = header
                 operation_desc = "file processed"
@@ -94,7 +94,7 @@ class CsvCombine(WorkflowPlugin):
                 raise ValueError(f"inconsistent headers (file {resource['name']})")
             else:
                 operation_desc = "files processed"
-            for rows in csv_list[1 + int(self.skip_rows) :]:
+            for rows in csv_list[1 + self.skip_rows :]:
                 strip = [c.strip() for c in rows]
                 value_list.append(strip)
             self.context.report.update(
