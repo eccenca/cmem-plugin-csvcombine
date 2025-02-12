@@ -90,16 +90,16 @@ class CsvCombine(WorkflowPlugin):
                 raise ValueError(f"inconsistent headers (file {resource['name']})")
             else:
                 operation_desc = "files processed"
-            for rows in csv_list[1 + self.skip_lines :]:
-                strip = [c.strip() for c in rows]
+            for row in csv_list[1 + self.skip_lines :]:
+                strip = [c.strip() for c in row]
                 value_list.append(strip)
             self.context.report.update(
                 ExecutionReport(entity_count=i + 1, operation_desc=operation_desc)
             )
-        value_list = [list(item) for item in {tuple(rows) for rows in value_list}]
+        value_list = [list(item) for item in {tuple(row) for row in value_list}]
         schema = EntitySchema(type_uri="urn:row", paths=[EntityPath(path=n) for n in header])
-        for i, rows in enumerate(value_list):
-            entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in rows]))
+        for i, row in enumerate(value_list):
+            entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in row]))
         return Entities(entities=entities, schema=schema)
 
     def execute(self, inputs: Sequence[Entities], context: ExecutionContext) -> Entities:  # noqa: ARG002
