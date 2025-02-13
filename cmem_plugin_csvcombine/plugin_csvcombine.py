@@ -17,7 +17,11 @@ from cmem_plugin_base.dataintegration.entity import (
 )
 from cmem_plugin_base.dataintegration.plugins import WorkflowPlugin
 from cmem_plugin_base.dataintegration.ports import FixedNumberOfInputs, UnknownSchemaPort
-from cmem_plugin_base.dataintegration.types import IntParameterType, StringParameterType
+from cmem_plugin_base.dataintegration.types import (
+    BoolParameterType,
+    IntParameterType,
+    StringParameterType,
+)
 from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 
 
@@ -55,18 +59,33 @@ from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
             label="Skip rows",
             description="The number of rows to skip before the header row.",
             default_value=0,
-            advanced=True,
+        ),
+        PluginParameter(
+            param_type=BoolParameterType(),
+            name="stop",
+            label="Stop workflow if result is empty",
+            description="Stop the workflow if no input files are found or all input files are "
+            "empty.",
+            default_value=True,
         ),
     ],
 )
 class CsvCombine(WorkflowPlugin):
     """Plugin to combine multiple csv files with same header."""
 
-    def __init__(self, delimiter: str, quotechar: str, regex: str, skip_lines: int) -> None:
+    def __init__(
+        self,
+        regex: str,
+        delimiter: str = ",",
+        quotechar: str = '"',
+        skip_lines: int = 0,
+        stop: bool = True,
+    ) -> None:
         self.delimiter = delimiter
         self.quotechar = quotechar
         self.regex = regex
         self.skip_lines = skip_lines
+        self.stop = stop
 
         self.input_ports = FixedNumberOfInputs([])
         self.output_port = UnknownSchemaPort()
@@ -75,18 +94,22 @@ class CsvCombine(WorkflowPlugin):
         """Create and return Entities."""
         value_list = []
         entities = []
+        header = []
         for i, resource in enumerate(resources):
             self.log.info(f"adding file {resource['name']}")
             csv_string = get_resource(resource["project"], resource["name"]).decode("utf-8")
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
+            if len(csv_list) < self.skip_lines + 1:
+                self.log.warning(f"Header not found in file {resource['name']}, skipping file.")
+                continue
             header = [c.strip() for c in csv_list[self.skip_lines]]
             if i == 0:
                 header_ = header
                 operation_desc = "file processed"
             elif header != header_:
-                raise ValueError(f"inconsistent headers (file {resource['name']})")
+                raise ValueError(f"Inconsistent headers (file {resource['name']}).")
             else:
                 operation_desc = "files processed"
             for row in csv_list[1 + self.skip_lines :]:
@@ -96,6 +119,11 @@ class CsvCombine(WorkflowPlugin):
                 ExecutionReport(entity_count=i + 1, operation_desc=operation_desc)
             )
         value_list = [list(item) for item in {tuple(row) for row in value_list}]
+        if not value_list:
+            if self.stop:
+                raise ValueError("No rows found in input files.")
+            self.log.warning("No rows found in input files.")
+            return Entities(entities=[], schema=EntitySchema(type_uri="", paths=[]))
         schema = EntitySchema(type_uri="urn:row", paths=[EntityPath(path=n) for n in header])
         for i, row in enumerate(value_list):
             entities.append(Entity(uri=f"urn:{i + 1}", values=[[v] for v in row]))
@@ -107,4 +135,9 @@ class CsvCombine(WorkflowPlugin):
         self.context = context
         setup_cmempy_user_access(context.user)
         resources = [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
+        if not resources:
+            if self.stop:
+                raise ValueError("No input files found.")
+            self.log.warning("No input files found.")
+            return Entities(entities=[], schema=EntitySchema(type_uri="", paths=[]))
         return self.get_entities(resources)

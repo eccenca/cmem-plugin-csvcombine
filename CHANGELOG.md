@@ -4,25 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/)
 
-## [Unreleased]
+## [3.0.0] 2025-02-13
 
 ### Fixed
 
-- check consistent headers across files
+- Check consistent headers across files
+- Error handling for empty/inconsisten files
 
 ### Added
 
 - Define input/output ports
 - Update execution report
+- Option to stop workflow if no input files are found or all input files are empty
 
 ### Changed
 
 - Forward cmem-plugin-template to v7.1.0
 - Removed accepting parameter settings on input port
 - Changed Parameter descriptions
+- 
 
 
-## [2.0.0]
+## [2.0.0] 2023-07-31
 
 ### Changed
 
@@ -32,13 +35,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 - broken tests
 
-## [1.0.0]
+
+## [1.0.0] 2022-08-09
 
 ### Added
 
 - initial version
-- tests
-
-### Fixed
-
-- refactor CSV combining logic to handle header extraction and index conversion
