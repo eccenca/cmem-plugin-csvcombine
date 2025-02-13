@@ -53,7 +53,7 @@ def _project() -> Generator[FixtureData, Any, None]:
 
 
 def test_execution(project: pytest.FixtureRequest) -> None:
-    """Test plugin execution for Plain Kafka"""
+    """Test plugin execution"""
     _ = project
 
     plugin = CsvCombine(

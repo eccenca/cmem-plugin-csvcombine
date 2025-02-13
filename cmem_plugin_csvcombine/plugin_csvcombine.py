@@ -75,7 +75,6 @@ class CsvCombine(WorkflowPlugin):
         """Create and return Entities."""
         value_list = []
         entities = []
-        header = []
         for i, resource in enumerate(resources):
             self.log.info(f"adding file {resource['name']}")
             csv_string = get_resource(resource["project"], resource["name"]).decode("utf-8")
