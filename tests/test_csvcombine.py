@@ -71,13 +71,6 @@ def _project() -> Generator[FixtureData, Any, None]:
 
     create_resource(
         project_name=fixture.project_name,
-        resource_name=fixture.resource_empty_one,
-        file_resource=BytesIO(b""),
-        replace=True,
-    )
-
-    create_resource(
-        project_name=fixture.project_name,
         resource_name=fixture.resource_empty_two,
         file_resource=BytesIO(b""),
         replace=True,
@@ -86,6 +79,13 @@ def _project() -> Generator[FixtureData, Any, None]:
     create_resource(
         project_name=fixture.project_name,
         resource_name=fixture.resource_header_one,
+        file_resource=BytesIO(b"first_name,last_name\n"),
+        replace=True,
+    )
+
+    create_resource(
+        project_name=fixture.project_name,
+        resource_name=fixture.resource_header_two,
         file_resource=BytesIO(b"first_name,last_name\n"),
         replace=True,
     )
