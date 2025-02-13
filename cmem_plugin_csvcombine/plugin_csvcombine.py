@@ -108,9 +108,9 @@ class CsvCombine(WorkflowPlugin):
             if i == 0:
                 header_ = header
                 operation_desc = "file processed"
-            elif header != header_:
-                raise ValueError(f"Inconsistent headers (file {resource['name']}).")
             else:
+                if header != header_:
+                    raise ValueError(f"Inconsistent headers (file {resource['name']}).")
                 operation_desc = "files processed"
             for row in csv_list[1 + self.skip_lines :]:
                 strip = [c.strip() for c in row]
