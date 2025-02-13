@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed
 
 - Check consistent headers across files
-- Error handling for empty/inconsisten files
+- Error handling for empty/inconsistent files
 
 ### Added
 
@@ -23,7 +23,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Forward cmem-plugin-template to v7.1.0
 - Removed accepting parameter settings on input port
 - Changed Parameter descriptions
-- 
 
 
 ## [2.0.0] 2023-07-31
