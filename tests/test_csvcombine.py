@@ -1,6 +1,7 @@
 """Plugin tests."""
 
 from collections.abc import Generator
+from contextlib import suppress
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -21,7 +22,7 @@ from .utils import (
 class FixtureData:
     """Fixture Data for Tests"""
 
-    project_name = "csv-combine-test-project"
+    project_name = "csv-combine-test-cb47a2a5a5d34fcdaef634f6f2a0ea39"
     resource_one = "test-csv-one.csv"
     resource_two = "test-csv-two.csv"
     resource_three = "test-csv-three-wrong-header.csv"
@@ -31,13 +32,13 @@ class FixtureData:
     resource_header_two = "test-header-csv-two.csv"
 
 
-@pytest.fixture(name="project")
-def _project() -> Generator[FixtureData, Any, None]:
-    """Fixture for project setup."""
+@pytest.fixture
+def setup1() -> Generator[FixtureData, Any, None]:
+    """Fixture for project test_execution"""
     fixture = FixtureData()
+    with suppress(Exception):
+        delete_project(fixture.project_name)
     make_new_project(fixture.project_name)
-
-    # Create the first dataset and upload the file as a resource
     with Path(f"tests/fixture_dir/{fixture.resource_one}").open("rb") as response_file:
         create_resource(
             project_name=fixture.project_name,
@@ -45,7 +46,6 @@ def _project() -> Generator[FixtureData, Any, None]:
             file_resource=response_file,
             replace=True,
         )
-
     with Path(f"tests/fixture_dir/{fixture.resource_two}").open("rb") as response_file:
         create_resource(
             project_name=fixture.project_name,
@@ -53,7 +53,24 @@ def _project() -> Generator[FixtureData, Any, None]:
             file_resource=response_file,
             replace=True,
         )
+    yield fixture
+    delete_project(fixture.project_name)
 
+
+@pytest.fixture
+def setup2() -> Generator[FixtureData, Any, None]:
+    """Fixture for test_execution_wrong_header"""
+    fixture = FixtureData()
+    with suppress(Exception):
+        delete_project(fixture.project_name)
+    make_new_project(fixture.project_name)
+    with Path(f"tests/fixture_dir/{fixture.resource_one}").open("rb") as response_file:
+        create_resource(
+            project_name=fixture.project_name,
+            resource_name=fixture.resource_one,
+            file_resource=response_file,
+            replace=True,
+        )
     with Path(f"tests/fixture_dir/{fixture.resource_three}").open("rb") as response_file:
         create_resource(
             project_name=fixture.project_name,
@@ -61,40 +78,70 @@ def _project() -> Generator[FixtureData, Any, None]:
             file_resource=response_file,
             replace=True,
         )
+    yield fixture
+    delete_project(fixture.project_name)
 
+
+@pytest.fixture
+def setup3() -> Generator[FixtureData, Any, None]:
+    """Fixture for test_execution_no_files, test_execution_no_files_stop"""
+    fixture = FixtureData()
+    with suppress(Exception):
+        delete_project(fixture.project_name)
+    make_new_project(fixture.project_name)
+    yield fixture
+    delete_project(fixture.project_name)
+
+
+@pytest.fixture
+def setup4() -> Generator[FixtureData, Any, None]:
+    """Fixture for test_execution_empty_files_no_header,
+    test_execution_empty_files_no_header_stop
+    """
+    fixture = FixtureData()
+    with suppress(Exception):
+        delete_project(fixture.project_name)
+    make_new_project(fixture.project_name)
     create_resource(
         project_name=fixture.project_name,
         resource_name=fixture.resource_empty_one,
         file_resource=BytesIO(b""),
         replace=True,
     )
-
     create_resource(
         project_name=fixture.project_name,
         resource_name=fixture.resource_empty_two,
         file_resource=BytesIO(b""),
         replace=True,
     )
+    yield fixture
+    delete_project(fixture.project_name)
 
+
+@pytest.fixture
+def setup5() -> Generator[FixtureData, Any, None]:
+    """Fixture for test_execution_empty_files_header, test_execution_empty_files_header_stop"""
+    fixture = FixtureData()
+    with suppress(Exception):
+        delete_project(fixture.project_name)
+    make_new_project(fixture.project_name)
     create_resource(
         project_name=fixture.project_name,
         resource_name=fixture.resource_header_one,
         file_resource=BytesIO(b"first_name,last_name\n"),
         replace=True,
     )
-
     create_resource(
         project_name=fixture.project_name,
         resource_name=fixture.resource_header_two,
         file_resource=BytesIO(b"first_name,last_name\n"),
         replace=True,
     )
-
     yield fixture
     delete_project(fixture.project_name)
 
 
-def test_execution(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution(setup1: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -102,7 +149,7 @@ def test_execution(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
         regex="^test-csv.{4}\\.csv$",
         skip_lines=0,
     )
-    result = plugin.execute(inputs=(), context=TestExecutionContext())
+    result = plugin.execute(inputs=(), context=TestExecutionContext(setup1.project_name))
     count = 0
     for item in result.entities:
         count += 1
@@ -111,7 +158,7 @@ def test_execution(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
     assert count == 25  # noqa: PLR2004
 
 
-def test_execution_wrong_header(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_wrong_header(setup2: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -120,10 +167,10 @@ def test_execution_wrong_header(project: pytest.FixtureRequest) -> None:  # noqa
         skip_lines=0,
     )
     with pytest.raises(ValueError, match="Inconsistent headers"):
-        plugin.execute(inputs=(), context=TestExecutionContext())
+        plugin.execute(inputs=(), context=TestExecutionContext(setup2.project_name))
 
 
-def test_execution_no_files() -> None:
+def test_execution_no_files(setup3: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -132,11 +179,11 @@ def test_execution_no_files() -> None:
         skip_lines=0,
         stop=False,
     )
-    result = plugin.execute(inputs=(), context=TestExecutionContext())
+    result = plugin.execute(inputs=(), context=TestExecutionContext(setup3.project_name))
     assert len(list(result.entities)) == 0
 
 
-def test_execution_no_files_stop() -> None:
+def test_execution_no_files_stop(setup3: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -145,10 +192,10 @@ def test_execution_no_files_stop() -> None:
         skip_lines=0,
     )
     with pytest.raises(ValueError, match="No input files found."):
-        plugin.execute(inputs=(), context=TestExecutionContext())
+        plugin.execute(inputs=(), context=TestExecutionContext(setup3.project_name))
 
 
-def test_execution_empty_files_no_header(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_no_header(setup4: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -157,11 +204,11 @@ def test_execution_empty_files_no_header(project: pytest.FixtureRequest) -> None
         skip_lines=0,
         stop=False,
     )
-    result = plugin.execute(inputs=(), context=TestExecutionContext())
+    result = plugin.execute(inputs=(), context=TestExecutionContext(setup4.project_name))
     assert len(list(result.entities)) == 0
 
 
-def test_execution_empty_files_no_header_stop(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_no_header_stop(setup4: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -170,10 +217,10 @@ def test_execution_empty_files_no_header_stop(project: pytest.FixtureRequest) ->
         skip_lines=0,
     )
     with pytest.raises(ValueError, match="No rows found in input files."):
-        plugin.execute(inputs=(), context=TestExecutionContext())
+        plugin.execute(inputs=(), context=TestExecutionContext(setup4.project_name))
 
 
-def test_execution_empty_files_header(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_header(setup5: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -182,11 +229,11 @@ def test_execution_empty_files_header(project: pytest.FixtureRequest) -> None:  
         skip_lines=0,
         stop=False,
     )
-    result = plugin.execute(inputs=(), context=TestExecutionContext())
+    result = plugin.execute(inputs=(), context=TestExecutionContext(setup5.project_name))
     assert len(list(result.entities)) == 0
 
 
-def test_execution_empty_files_header_stop(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_header_stop(setup5: FixtureData) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -195,4 +242,4 @@ def test_execution_empty_files_header_stop(project: pytest.FixtureRequest) -> No
         skip_lines=0,
     )
     with pytest.raises(ValueError, match="No rows found in input files."):
-        plugin.execute(inputs=(), context=TestExecutionContext())
+        plugin.execute(inputs=(), context=TestExecutionContext(setup5.project_name))
