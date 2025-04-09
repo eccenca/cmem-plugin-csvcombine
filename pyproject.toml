@@ -92,5 +92,6 @@ ignore = [
     "PD",      # opinionated linting for pandas code
     "S101",    # use of assert detected
     "TRY003",  # Avoid specifying long messages outside the exception class
+    "D205",    # 1 blank line required between summary line and description
 ]
 
