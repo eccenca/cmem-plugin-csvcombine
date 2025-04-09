@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from csv import reader
 from io import StringIO
 
-from cmem.cmempy.workspace.projects.resources import get_all_resources
+from cmem.cmempy.workspace.projects.resources import get_resources
 from cmem.cmempy.workspace.projects.resources.resource import get_resource
 from cmem_plugin_base.dataintegration.context import ExecutionContext, ExecutionReport
 from cmem_plugin_base.dataintegration.description import Icon, Plugin, PluginParameter
@@ -96,13 +96,13 @@ class CsvCombine(WorkflowPlugin):
         entities = []
         header = []
         for i, resource in enumerate(resources):
-            self.log.info(f"adding file {resource['name']}")
-            csv_string = get_resource(resource["project"], resource["name"]).decode("utf-8")
+            self.log.info(f"adding file {resource}")
+            csv_string = get_resource(self.context.task.project_id(), resource).decode("utf-8")
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
             if len(csv_list) < self.skip_lines + 1:
-                self.log.warning(f"Header not found in file {resource['name']}, skipping file.")
+                self.log.warning(f"Header not found in file {resource}, skipping file.")
                 continue
             header = [c.strip() for c in csv_list[self.skip_lines]]
             if i == 0:
@@ -110,7 +110,7 @@ class CsvCombine(WorkflowPlugin):
                 operation_desc = "file processed"
             else:
                 if header != header_:
-                    raise ValueError(f"Inconsistent headers (file {resource['name']}).")
+                    raise ValueError(f"Inconsistent headers (file {resource}).")
                 operation_desc = "files processed"
             for row in csv_list[1 + self.skip_lines :]:
                 strip = [c.strip() for c in row]
@@ -134,7 +134,11 @@ class CsvCombine(WorkflowPlugin):
         context.report.update(ExecutionReport(entity_count=0, operation_desc="files processed"))
         self.context = context
         setup_cmempy_user_access(context.user)
-        resources = [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
+        resources = [
+            r["name"]
+            for r in get_resources(context.task.project_id())
+            if re.match(rf"{self.regex}", r["name"])
+        ]
         if not resources:
             if self.stop:
                 raise ValueError("No input files found.")
