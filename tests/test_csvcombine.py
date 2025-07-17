@@ -9,12 +9,11 @@ from typing import Any
 import pytest
 from cmem.cmempy.workspace.projects.project import delete_project, make_new_project
 from cmem.cmempy.workspace.projects.resources.resource import create_resource
-
-from cmem_plugin_csvcombine.plugin_csvcombine import CsvCombine
-
-from .utils import (
+from cmem_plugin_base.testing import (
     TestExecutionContext,
 )
+
+from cmem_plugin_csvcombine.plugin_csvcombine import CsvCombine
 
 
 @dataclass
