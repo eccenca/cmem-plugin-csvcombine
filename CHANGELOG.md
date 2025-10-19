@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/)
 
+## [3.2.0] 2025-10-19
+
+### Changed
+
+- Update of dependencies and template
+- validation of python 3.13 compatibility
+
+### Breaking Change
+
+- Requires python 3.13 now (>= CMEM 25.3.x)
+
 ## [3.1.0] 2025-07-17
 
 ### Changed
