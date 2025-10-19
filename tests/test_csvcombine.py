@@ -143,7 +143,7 @@ def test_execution_no_files_stop() -> None:
         regex="none",
         skip_lines=0,
     )
-    with pytest.raises(ValueError, match="No input files found."):
+    with pytest.raises(ValueError, match=r"No input files found."):
         plugin.execute(inputs=(), context=TestExecutionContext())
 
 
@@ -168,7 +168,7 @@ def test_execution_empty_files_no_header_stop(project: pytest.FixtureRequest) ->
         regex="^test-empty-csv.{4}\\.csv$",
         skip_lines=0,
     )
-    with pytest.raises(ValueError, match="No rows found in input files."):
+    with pytest.raises(ValueError, match=r"No rows found in input files."):
         plugin.execute(inputs=(), context=TestExecutionContext())
 
 
@@ -193,5 +193,5 @@ def test_execution_empty_files_header_stop(project: pytest.FixtureRequest) -> No
         regex="^test-header-csv.{4}\\.csv$",
         skip_lines=0,
     )
-    with pytest.raises(ValueError, match="No rows found in input files."):
+    with pytest.raises(ValueError, match=r"No rows found in input files."):
         plugin.execute(inputs=(), context=TestExecutionContext())
