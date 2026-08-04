@@ -5,8 +5,9 @@ from collections.abc import Sequence
 from csv import reader
 from io import StringIO
 
-from cmem.cmempy.workspace.projects.resources import get_all_resources
-from cmem.cmempy.workspace.projects.resources.resource import get_resource
+from cmem_client.client import Client
+from cmem_client.models.resource import Resource
+from cmem_plugin_base.dataintegration.client import get_client
 from cmem_plugin_base.dataintegration.context import ExecutionContext, ExecutionReport
 from cmem_plugin_base.dataintegration.description import Icon, Plugin, PluginParameter
 from cmem_plugin_base.dataintegration.entity import (
@@ -22,7 +23,6 @@ from cmem_plugin_base.dataintegration.types import (
     IntParameterType,
     StringParameterType,
 )
-from cmem_plugin_base.dataintegration.utils import setup_cmempy_user_access
 
 
 @Plugin(
@@ -90,33 +90,35 @@ class CsvCombine(WorkflowPlugin):
         self.input_ports = FixedNumberOfInputs([])
         self.output_port = UnknownSchemaPort()
 
-    def get_entities(self, resources: list) -> Entities:
+    def get_entities(self, client: Client, resources: list[Resource]) -> Entities:
         """Create and return Entities."""
         value_list = []
         entities = []
-        header = []
-        for i, resource in enumerate(resources):
-            self.log.info(f"adding file {resource['name']}")
-            csv_string = get_resource(resource["project"], resource["name"]).decode("utf-8")
+        header: list[str] = []
+        processed = 0
+        for resource in resources:
+            self.log.info(f"adding file {resource.name}")
+            csv_string = client.files.read(resource.get_id()).decode("utf-8")
             csv_list = list(
                 reader(StringIO(csv_string), delimiter=self.delimiter, quotechar=self.quotechar)
             )
             if len(csv_list) < self.skip_lines + 1:
-                self.log.warning(f"Header not found in file {resource['name']}, skipping file.")
+                self.log.warning(f"Header not found in file {resource.name}, skipping file.")
                 continue
-            header = [c.strip() for c in csv_list[self.skip_lines]]
-            if i == 0:
-                header_ = header
-                operation_desc = "file processed"
-            elif header != header_:
-                raise ValueError(f"Inconsistent headers (file {resource['name']}).")
-            else:
-                operation_desc = "files processed"
+            file_header = [c.strip() for c in csv_list[self.skip_lines]]
+            if not processed:
+                header = file_header
+            elif file_header != header:
+                raise ValueError(f"Inconsistent headers (file {resource.name}).")
+            processed += 1
             for row in csv_list[1 + self.skip_lines :]:
                 strip = [c.strip() for c in row]
                 value_list.append(strip)
             self.context.report.update(
-                ExecutionReport(entity_count=i + 1, operation_desc=operation_desc)
+                ExecutionReport(
+                    entity_count=processed,
+                    operation_desc="file processed" if processed == 1 else "files processed",
+                )
             )
         value_list = [list(item) for item in {tuple(row) for row in value_list}]
         if not value_list:
@@ -131,13 +133,17 @@ class CsvCombine(WorkflowPlugin):
 
     def execute(self, inputs: Sequence[Entities], context: ExecutionContext) -> Entities:  # noqa: ARG002
         """Execute plugin"""
+        client = get_client(context)
         context.report.update(ExecutionReport(entity_count=0, operation_desc="files processed"))
         self.context = context
-        setup_cmempy_user_access(context.user)
-        resources = [r for r in get_all_resources() if re.match(rf"{self.regex}", r["name"])]
+        resources = [
+            resource
+            for resource in client.files.values()
+            if resource.name and re.match(rf"{self.regex}", resource.name)
+        ]
         if not resources:
             if self.stop:
                 raise ValueError("No input files found.")
             self.log.warning("No input files found.")
             return Entities(entities=[], schema=EntitySchema(type_uri="", paths=[]))
-        return self.get_entities(resources)
+        return self.get_entities(client, resources)

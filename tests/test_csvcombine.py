@@ -31,7 +31,7 @@ class FixtureData:
 
 
 @pytest.fixture(name="project")
-def _project() -> Generator[FixtureData, Any, None]:
+def _project() -> Generator[FixtureData, Any]:
     """Fixture for project setup."""
     fixture = FixtureData()
     make_new_project(fixture.project_name)
