@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/)
 
+## [3.3.1] 2026-08-19
+
+### Fixed
+
+- Bumped cmem-client version to v1.0.0 for DI compatability
+
 ## [3.3.0] 2026-08-04
  
 ### Changed
