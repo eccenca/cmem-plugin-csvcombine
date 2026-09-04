@@ -93,7 +93,7 @@ def _project() -> Generator[FixtureData, Any]:
     delete_project(fixture.project_name)
 
 
-def test_execution(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution(project: pytest.FixtureRequest) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -110,7 +110,7 @@ def test_execution(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
     assert count == 25  # noqa: PLR2004
 
 
-def test_execution_wrong_header(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_wrong_header(project: pytest.FixtureRequest) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -147,7 +147,7 @@ def test_execution_no_files_stop() -> None:
         plugin.execute(inputs=(), context=TestExecutionContext())
 
 
-def test_execution_empty_files_no_header(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_no_header(project: pytest.FixtureRequest) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -160,7 +160,7 @@ def test_execution_empty_files_no_header(project: pytest.FixtureRequest) -> None
     assert len(list(result.entities)) == 0
 
 
-def test_execution_empty_files_no_header_stop(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_no_header_stop(project: pytest.FixtureRequest) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -172,7 +172,7 @@ def test_execution_empty_files_no_header_stop(project: pytest.FixtureRequest) ->
         plugin.execute(inputs=(), context=TestExecutionContext())
 
 
-def test_execution_empty_files_header(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_header(project: pytest.FixtureRequest) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
@@ -185,7 +185,7 @@ def test_execution_empty_files_header(project: pytest.FixtureRequest) -> None:  
     assert len(list(result.entities)) == 0
 
 
-def test_execution_empty_files_header_stop(project: pytest.FixtureRequest) -> None:  # noqa: ARG001
+def test_execution_empty_files_header_stop(project: pytest.FixtureRequest) -> None:
     """Test plugin execution"""
     plugin = CsvCombine(
         delimiter=",",
