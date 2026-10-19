@@ -107,7 +107,7 @@ def test_execution(project: pytest.FixtureRequest) -> None:
         count += 1
         assert len(item.values) == len(result.schema.paths)
     # assert 25 items (with two duplicates) after combining two CSV files
-    assert count == 25  # noqa: PLR2004
+    assert count == 25
 
 
 def test_execution_wrong_header(project: pytest.FixtureRequest) -> None:
